@@ -1,197 +1,123 @@
-Readme.MD file
-Overview
-Welcome to the Zangoh AI Agent Supervisor Workstation Challenge! In this challenge, you will build a workstation interface that allows human supervisors to monitor, intervene, and improve AI customer service agents.
-Zangoh is developing autonomous AI agents for enterprise customer service. These agents handle routine customer inquiries, but human supervisors need to monitor their performance, step in when necessary, and continuously improve the system. Your task is to build the supervisor workstation that makes this human-in-the-loop workflow possible.
-Challenge Duration
-You have 3 hours to complete this challenge. Please manage your time accordingly.
-Note: You may receive an additional requirement during the challenge. Be prepared to adapt your solution.
-Tech Stack
-The challenge uses the following technologies:
-Backend
-Node.js with Express
-MongoDB (provided via Docker)
-WebSockets for real-time updates
-Mock LLM API (for simulating AI responses)
-Qdrant Vector Database (for knowledge retrieval)
-Frontend
-React with hooks
-Chakra UI component library
-WebSocket client for real-time updates
-Recharts for data visualization
-Environment Setup
-Prerequisites
-Docker and Docker Compose
-Node.js (v16 or later)
-npm or yarn
-Git
-A modern web browser (Chrome or Firefox recommended)
-Setup Steps
-Clone the starter repository
+# Zangoh AI Agent Supervisor Workstation
 
- git clone https://github.com/zangoh/supervisor-challenge.git
-cd supervisor-challenge
+A human-in-the-loop workstation for monitoring AI-assisted customer support, reviewing conversations, taking over or returning control, configuring agents, and managing response templates.
 
+## Prerequisites
 
-Start the Docker environment
+- Docker Desktop with Docker Compose v2 (`docker compose`)
+- Node.js 16 or newer and npm (for local development)
+- A modern browser
 
- The challenge environment is containerized to ensure consistency. Start the Docker containers:
+## Run with Docker Compose
 
- docker-compose up -d
- This will start:
+From the repository root:
 
+```bash
+docker compose up -d --build
+```
 
-MongoDB database
-Qdrant vector database
-Backend API server
-Frontend development server
-Mock LLM API
-Conversation simulator
-Verify services are running
+Compose starts the React development server, Express API, MongoDB, Qdrant, and Ollama. The frontend and backend containers install their npm dependencies when they start.
 
- Check that all services are up and running:
+Open:
 
- docker ps
- You should see containers for backend, frontend, mongodb, qdrant, and simulator.
+- Frontend: <http://localhost:3000>
+- Backend health: <http://localhost:8080/health>
+- API documentation: <http://localhost:8080/api-docs>
+- Qdrant: <http://localhost:6333>
+- Ollama: <http://localhost:11434>
 
+Check status and logs:
 
-Access the application
+```bash
+docker compose ps
+docker compose logs -f backend
+```
 
+Stop the services:
 
-Frontend: http://localhost:3000
-Backend API: http://localhost:8080
-API Documentation: http://localhost:8080/api-docs
-Initialize test data (if needed)
+```bash
+docker compose down
+```
 
- The environment comes pre-loaded with test data, but if you need to reset it:
+To also remove persisted MongoDB, Qdrant, and Ollama data, run `docker compose down -v`.
 
- docker-compose exec backend npm run seed
+The Compose configuration supplies `MONGODB_URI=mongodb://mongodb:27017/zangoh` to the backend and points the frontend at the host-mapped API on `localhost:8080`. Optional model API keys can be supplied in a root `.env` file as `OPENAI_API_KEY` and `TOGETHER_API_KEY`; the Compose file provides dummy defaults for local startup.
 
+## Run locally (without frontend/backend containers)
 
-Project Structure
-The starter code is organized as follows:
-supervisor-challenge/
-├── backend/                    # Backend API server
-│   ├── data/                   # Sample data
-│   ├── middleware/             # Express middleware
-│   ├── models/                 # MongoDB models
-│   ├── routes/                 # API routes
-│   ├── websocket/              # WebSocket handlers
-│   ├── utils/                  # Utility functions
-│   └── server.js               # Main server file
-├── frontend/                   # React frontend
-│   ├── public/                 # Static assets
-│   ├── src/
-│   │   ├── api/                # API client
-│   │   ├── components/         # React components
-│   │   ├── context/            # React context providers
-│   │   ├── pages/              # Page components
-│   │   ├── utils/              # Utility functions
-│   │   └── App.js              # Main App component
-├── docker/                     # Docker configuration
-├── mockups/                    # UI design screenshots
-├── docker-compose.yml          # Docker Compose configuration
-└── README.md                   # This file
+Start the data and supporting services from the repository root:
 
-UI Design Reference
-All UI designs are provided in Figma and as static images in the mockups folder. Your implementation should follow these designs.
-Figma Link: [FIGMA_LINK_HERE]
-The designs include:
-Dashboard/Overview Screen: Showing key metrics and conversation lists
-Conversation Detail/Intervention Screen: For monitoring and intervening in conversations
-Agent Configuration Screen: For adjusting AI agent parameters and capabilities
-Focus on implementing the functionality according to these designs. Pixel-perfect reproduction is not required, but your implementation should closely match the overall layout and user experience.
-Available APIs
-The backend provides the following API endpoints:
-Conversations
-GET /api/conversations: Get all conversations with filtering
-GET /api/conversations/:id: Get a specific conversation
-POST /api/conversations/:id/messages: Add a message to a conversation
-PATCH /api/conversations/:id/status: Update conversation status
-POST /api/conversations/:id/tags: Add tags to a conversation
-Agents
-GET /api/agents: Get all agents
-GET /api/agents/:id: Get a specific agent
-PATCH /api/agents/:id/config: Update agent configuration
-GET /api/agents/:id/metrics: Get agent performance metrics
-Intervention
-POST /api/intervene: Intervene in a conversation
-POST /api/intervene/release: End intervention and return to agent
-Knowledge Base
-GET /api/knowledge-base: Get all knowledge bases
-LLM Mock API
-POST /api/llm/generate: Generate LLM response
-POST /api/llm/sentiment: Analyze text sentiment
-WebSocket API
-The WebSocket server provides real-time updates for:
-New conversations
-Message updates
-Metrics changes
-Agent status changes
-Refer to the API documentation at http://localhost:8080/api-docs for detailed information.
-Testing Your Implementation
-A testing script is provided to help you validate your implementation. Run it with:
-cd testing
+```bash
+docker compose up -d mongodb qdrant ollama
+```
+
+In a terminal, install and start the backend:
+
+```bash
+cd backend-starter
 npm install
-node test-runner.js
+MONGODB_URI=mongodb://localhost:27017/zangoh QDRANT_URL=http://localhost:6333 npm run dev
+```
 
-This will check the core functionality of your implementation and provide feedback on what's working and what needs attention.
-Implementation Requirements
-Your implementation should include:
-1. Agent Monitoring Dashboard
-Real-time view of active customer conversations with AI agents
-Key metrics display (resolution rate, average response time, customer satisfaction)
-Alert system for potentially problematic conversations
-Filtering options (by agent, status, alert level)
-2. Intervention Interface
-Ability to view full conversation history for any active session
-"Take over" functionality to assume control from the AI agent
-Agent performance feedback mechanism
-Option to return control to the AI with notes/guidance
-3. Agent Configuration
-Adjust AI parameters (temperature, max tokens, etc.)
-Enable/disable specific capabilities or knowledge domains
-Configure automatic escalation thresholds
-Save and load configuration presets
-Tips for Success
-Start with core functionality: Implement the basic features first before adding polish
-Use the provided components: The starter code includes basic components you can build upon
-Test incrementally: Use the testing script to validate your progress
-Manage your time: Allocate time for each major feature, leaving time for integration and testing
-Read the API docs: Understand the available endpoints before implementation
-Study the designs: Familiarize yourself with all screens before starting to understand the complete system
-Submission
-When you're done, submit your solution as follows:
-Ensure all code is committed:
+In a second terminal, install and start the frontend:
 
- git add .
-git commit -m "Final submission"
+```bash
+cd frontend-starter
+npm install
+npm start
+```
 
+The frontend is available at <http://localhost:3000>. Its development proxy forwards `/api` requests to `http://localhost:8080`. To use different API or WebSocket addresses, set `REACT_APP_API_URL` or `REACT_APP_WS_URL` before starting the frontend.
 
-Create a zip file of your solution:
+## Project structure
 
- # From the project root
-zip -r submission.zip . -x "node_modules/*" "*/node_modules/*" ".git/*"
+```text
+.
+├── backend-starter/
+│   ├── models/              # Mongoose schemas for agents, conversations, templates, and knowledge bases
+│   ├── routes/              # REST endpoints for application features and analytics
+│   ├── websocket/           # WebSocket connection handlers
+│   ├── data/                # Sample conversation data
+│   ├── utils/               # Seed and helper scripts
+│   └── server.js            # Express, MongoDB, WebSocket server, and route setup
+├── frontend-starter/
+│   ├── src/components/      # Shared layout, navigation, and template picker UI
+│   ├── src/context/         # Shared app state and WebSocket connection
+│   ├── src/pages/           # Dashboard, conversations, agent configuration, and templates
+│   └── src/api/             # Axios API client
+├── docker/                  # Frontend and backend Dockerfiles
+├── data-samples/            # MongoDB initialization data
+├── testing/                 # Puppeteer-based integration/UI test runner
+└── docker-compose.yaml      # Local service topology
+```
 
+## Architecture overview
 
-Upload your submission to the platform or provide a GitHub repository link as instructed
+The frontend is a React single-page application. React Router maps the Dashboard, Conversation, Agent Configuration, and Templates screens. Chakra UI provides the component system, and Recharts renders dashboard activity. `AppDataContext` loads shared conversations and agent data; `WebSocketContext` handles server-pushed events. The Dashboard also subscribes to the analytics Server-Sent Events stream for periodic metric snapshots.
 
+The backend is an Express application connected to MongoDB through Mongoose. REST routes serve conversation, agent, intervention, template, knowledge-base, and analytics data. The same HTTP server hosts WebSockets for real-time updates. Qdrant and Ollama run as supporting Compose services for vector search and local model workflows.
 
-Include in your submission:
+## Testing
 
+Start the frontend and backend first. The test runner uses Axios, `ws`, and Puppeteer. Install those dependencies at the repository root if they are not already available, then run:
 
-Complete source code
-Setup instructions if you've modified the environment
-Brief description of your implementation, challenges faced, and solutions
-Any notes for the evaluator
-Evaluation Criteria
-Your solution will be evaluated based on:
-Functionality (40%): Does it fulfill all the requirements?
-Code Quality (25%): Is the code well-structured, maintainable, and efficient?
-Design Implementation (15%): How well does it match the provided designs?
-Technical Decisions (20%): Are the technical choices appropriate and efficient?
-Need Help?
-If you encounter any issues with the environment setup:
-Check the Docker logs: docker-compose logs <service-name>
-Ensure all services are running: docker ps
-Restart the environment if needed: docker-compose down && docker-compose up -d
-Good luck!
+```bash
+npm install --no-save axios ws puppeteer
+node testing/test-runner.js
+```
+
+The runner checks service availability, API endpoints, WebSocket behavior, and key UI screens. Dashboard navigation waits for the page heading rather than network idleness because the live SSE connection remains open.
+
+Build the frontend for production with:
+
+```bash
+cd frontend-starter
+npm run build
+```
+
+## Implementation notes and challenges
+
+- **Live dashboard and browser navigation:** SSE keeps a request open continuously, so a browser test waiting for all requests to become idle can time out. The Dashboard UI check waits for rendered page content instead.
+- **Template data shape and insertion:** Older or incomplete template records may omit a content field. The UI falls back to available message/description data, resolves supported variables, and uses a fallback clipboard method when browser clipboard access is unavailable.
+- **SLA information:** The conversation view uses an API-provided SLA deadline when present. If a deadline is absent, it displays an estimate based on alert priority and the latest customer reply.
+- **Local service connectivity:** Containers address MongoDB by the Compose service name `mongodb`; processes running directly on the host use `localhost`. This distinction avoids using a container-only hostname from a local backend process.
